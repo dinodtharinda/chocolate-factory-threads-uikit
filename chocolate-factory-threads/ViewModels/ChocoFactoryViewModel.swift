@@ -31,14 +31,15 @@ class ChocoFactoryViewModel {
     
     
     
-    func milkConsume(count: Int) -> Milk?{
+    func milkConsume() -> Milk?{
         var milk: Milk?
-        queue.async {
+        
+        queue.sync {
             self.milkFactory.consume(callback: { output in
                 guard let m = output else {
                     return
                 }
-            
+                
                 milk = m
             })
            
@@ -50,15 +51,17 @@ class ChocoFactoryViewModel {
 
    
     func start(){
-        milkFactory.start()
+        queue.async{
+            self.milkFactory.start()
+          
+        }
+        
+        queue.async{
+            self.chocoFactory.startProduction()
+        }
+       
 //        sugarFactory.start()
 //        cocoaFactory.start()
-//        chocoFactory
-//            .produce(
-//                milkSore: milkFactory,
-//                sugarStore: sugarFactory,
-//                cocoaStore: cocoaFactory
-//            )
 //        giftFactory.produce(chocoStore: chocoFactory, milkStore: milkFactory)
     }
     

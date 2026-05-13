@@ -30,8 +30,8 @@ class MilkStore: Store {
     init() {
         status = Status.stopped
         self.unitQueue = DispatchQueue.init(
-            label: "com.dinod.milk-unit",
-            attributes: .concurrent
+            label: "com.dinod.milk-unit"
+            
         )
        
     }
@@ -40,15 +40,18 @@ class MilkStore: Store {
         self.didChangeStatus = didChangeStatus
     }
     func start(){
-        while isActive {
-        
-            self.isActive = true
+        self.isActive = true
+        while self.isActive {
+       
             self.unitQueue.async { [weak self] in
-                
                 guard let `self` = self else { return }
+               
                 
                     if(self.units.count < self.maxCapacity){
-                        self.status = .producing
+                        if self.status != .producing {
+                            self.status = .producing
+                        }
+                        
                         
                         self.units.insert(Milk(), at: 0)
                         print("Milk Produced")
@@ -63,15 +66,16 @@ class MilkStore: Store {
                    
                 }
             
+            Thread.sleep(forTimeInterval: 1)
+//            print("milk ",self.status.rawValue)
+            
         }
         
         
     }
     
     func pause(){
-        unitQueue.async {
-            self.isActive = false
-        }
+        self.isActive = false
     
     }
     
@@ -99,7 +103,7 @@ class MilkStore: Store {
             var output: Milk?
             
              output = units.popLast()
-            
+            print("Milk Consume")
             callback(output)
         }
     }

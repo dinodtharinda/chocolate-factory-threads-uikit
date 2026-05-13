@@ -43,45 +43,46 @@ class ChocoStore: Store {
     }
 
     func startProduction() {
-
-        while isActive {
-            unitQueue.async { [weak self] in
-                guard let `self` = self
+        self.isActive = true
+        print("Choco Store started")
+        while self.isActive {
+        
+        unitQueue.async { [weak self] in
+            guard let `self` = self else { return }
+            
+       
                 if self.maxCapacity > self.units.count {
-
-                    //                    guard cocoa.count == 30, sugar.count == 80, milk!.count == 5 else {
-                    //                        print(cocoa.count," ",sugar.count," ",milk!.count)
-                    //                        self.status = .waiting
-                    ////                            print("continued")
-                    //                        continue
-                    //                    }
-                    
+                    print("True Capacity Condition")
                     let milk:Milk? = callbackConsumeMilk?()
                     
-                    guard let m = milk else {
-                        return
+                    if(milk != nil){
+                        milkUnits.append(milk!)
+                        print("milk added to the chocostore")
                     }
                     
-                    
+                    guard milkUnits.count >= 5 else {
+                        print("not enough milk units")
+                        return
+                    }
                     self.status = .producing
-
-                    Thread.sleep(forTimeInterval: 1)
+                    
                     self.units.insert(Choco(), at: 0)
-                    self.cocoaUnits = []
-
-                    self.sugarUnits = []
-
+                    milkUnits = []
+                    //                    self.cocoaUnits = []
+                    //
+                    //                    self.sugarUnits = []
+                    
                     print("chocobar Produced", units.count)
-
+                    
                 } else {
-
+                   
                     if self.status != .resourceFull {
                         self.status = .resourceFull
                     }
                 }
             }
             
-
+        Thread.sleep(forTimeInterval: 1)
         }
 
     }
