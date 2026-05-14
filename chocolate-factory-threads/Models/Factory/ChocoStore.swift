@@ -15,6 +15,7 @@ class ChocoStore: Store {
     private var units: [Choco] = []
     private let requiredSugar:Int = 80
     private let requiredMilk:Int = 5
+    private let requiredCocoa:Int = 30
 
     private var milkUnits: [Milk] = []
     private var cocoaUnits: [Cocoa] = []
@@ -31,7 +32,9 @@ class ChocoStore: Store {
 
     private var callbackConsumeMilk: (() -> Milk?)?
     private var callBackConsumeSugar: (() -> Sugar?)?
-
+    private var callBackConsumeCocoa: (() -> Cocoa?)?
+    
+    
     init() {
         self.status = .stopped
         self.unitQueue = DispatchQueue.init(
@@ -45,10 +48,12 @@ class ChocoStore: Store {
 
     func setCallbacks(
         callbackConsumeMilk: @escaping () -> Milk?,
-        callbackConsumeSugar: @escaping () -> Sugar?
+        callbackConsumeSugar: @escaping () -> Sugar?,
+        callbackConsumeCocoa: @escaping () -> Cocoa?
     ) {
         self.callbackConsumeMilk = callbackConsumeMilk
         self.callBackConsumeSugar = callbackConsumeSugar
+        self.callBackConsumeCocoa = callbackConsumeCocoa
     }
 
     func startProduction() {
@@ -80,30 +85,40 @@ class ChocoStore: Store {
                             print("sugar added to the chocostore")
                         }
                     }
+                    
+                    //consume cocoa
+                    if(requiredCocoa > cocoaUnits.count){
+                        let cocoa:Cocoa? = callBackConsumeCocoa?()
+                        if(cocoa != nil){
+                            cocoaUnits.append(cocoa!)
+                            print("cocoa added to the chocostore")
+                        }
+                    }
+                    
+                    
                    
                     
-                    guard milkUnits.count >= 5,sugarUnits.count >= 80 else {
+                    guard milkUnits.count >= 5,sugarUnits.count >= 80, cocoaUnits.count >= 30 else {
                         print(
-                            "not enough Milk(\(milkUnits.count)) or Sugar(\(sugarUnits.count)) units"
+                            "not enough Milk(\(milkUnits.count)) or Sugar(\(sugarUnits.count)) or Cocoa(\(cocoaUnits.count)) units"
                         )
+                        toggleStatus(status: .waiting)
                         return
                     }
-                    self.status = .producing
+                   
+                    toggleStatus(status: .producing)
+                    
                     
                     self.units.insert(Choco(), at: 0)
                     self.milkUnits = []
                     self.sugarUnits = []
-                    //                    self.cocoaUnits = []
-                    //
-                                        
-                    
+                    self.cocoaUnits = []
+                                                        
                     print("chocobar Produced", units.count)
                     
                 } else {
                    
-                    if self.status != .resourceFull {
-                        self.status = .resourceFull
-                    }
+                    toggleStatus(status: .resourceFull)
                 }
             }
             
@@ -112,11 +127,29 @@ class ChocoStore: Store {
 
     }
     
+    func toggleStatus(status: Status){
+        if self.status != status {
+            self.status = status
+        }
+    }
+    
     func pause(){
         unitQueue.sync {
             self.isActive = false
         }
     }
+    
+    func reset(){
+        unitQueue.sync {
+            self.isActive = false
+            milkUnits = []
+            sugarUnits = []
+            cocoaUnits = []
+        }
+    }
+    
+    
+    
 
     func consume(count: Int, callback: @escaping ([Choco]?) -> Void) {
 

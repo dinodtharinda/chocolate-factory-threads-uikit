@@ -49,15 +49,13 @@ class SugarStore: Store {
                 // loop produce
 
                 if self.maxCapacity >= self.units.count {
-                    self.status = .producing
+                    toggleStatus(status: .producing)
                     
                     units.insert(Sugar(), at: 0)
-                    print("Sugar Produced")
+                    print("Sugar Produced ")
 
                 } else {
-                    if self.status != .resourceFull {
-                        self.status = .resourceFull
-                    }
+                    toggleStatus(status: .resourceFull)
                 }
 
             }
@@ -66,10 +64,17 @@ class SugarStore: Store {
         }
 
     }
+    
+    func toggleStatus(status: Status){
+        if self.status != status {
+            self.status = status
+        }
+    }
 
     func pause() {
         unitQueue.sync {
             self.isActive = false
+            self.toggleStatus(status: .stopped)
         }
         
         
@@ -78,8 +83,8 @@ class SugarStore: Store {
     func reset() {
         unitQueue.sync {
             self.isActive = false
-            self.status = .stopped
             self.units = []
+            self.toggleStatus(status: .stopped)
         }
         
         

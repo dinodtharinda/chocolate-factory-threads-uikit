@@ -11,8 +11,6 @@ import Foundation
 class CocoaStore : Store{
     private var unitQueue: DispatchQueue
     
-    private var syncQueue: DispatchQueue
-    
     private var maxCapacity: Int = 180
     
     private var units: [Cocoa] = []
@@ -35,7 +33,6 @@ class CocoaStore : Store{
             label: "com.dinod.cocoa.unit",
             attributes: .concurrent
         )
-        self.syncQueue = DispatchQueue.init(label: "com.dinod.cooca.sync")
     }
     
     func setAction(didChangeStatus: @escaping (Status) -> Void){
@@ -44,82 +41,73 @@ class CocoaStore : Store{
     
     
     func start(){
-        syncQueue.async {
+       
             self.isActive = true
             self.unitQueue.async{ [weak self] in
                 
                 guard let `self` = self else {
                     return
                 }
-                
-                var isActive = self.syncQueue.sync{ self.isActive }
-                
-                while isActive {
-                    if(self.maxCapacity >= self.units.count) {
+                while self.isActive {
+                    if(self.maxCapacity > self.units.count) {
                       
-                        syncQueue.sync { self.status = .producing }
+                        toggleStatus(status: .producing)
                         units.insert(Cocoa(), at: 0)
                         print("Cocoa Produced ",units.count)
                         Thread.sleep(forTimeInterval:0.2)
                     } else {
-                        let st = syncQueue.sync{ self.status }
-                        
-                        if(st != .resourceFull){
-                            syncQueue.sync { self.status = .resourceFull }
-                        }
+                    
+                        toggleStatus(status: .resourceFull)
                     }
                     
-                    isActive = syncQueue.sync{ self.isActive }
+                   
                 }
                 
             }
-        }
+        
+    }
     
+    func toggleStatus(status: Status){
+        if self.status != status {
+            self.status = status
+        }
     }
     
     func pause(){
-        syncQueue.async {
+        unitQueue.async {
             print("Stopped!")
             self.isActive = false
+            self.toggleStatus(status: .stopped)
         }
         
     }
     
     func reset(){
-        syncQueue.async {
+        unitQueue.async {
             self.isActive = false
-            self.unitQueue.async {
-                print("Reset")
-                self.units = []
-            }
+            print("Reset")
+            self.units = []
+            self.toggleStatus(status: .stopped)
         }
         
     }
     
-    func consume(count: Int, callback: @escaping ([Cocoa]?) -> Void){
-        // check stock availability
-        guard count <=  units.count else {
-            callback(nil)
-            return
-        }
-        var output: [Cocoa] = []
-    
-        unitQueue.async { [weak self] in
-           
+    func consume(callback: @escaping (Cocoa?) -> Void){
+        unitQueue.sync { [weak self] in
             guard let `self` = self else {
                 callback(nil)
                 return
             }
-            
-            for _ in (0..<count).reversed() {
-                guard let last = units.popLast() else {
-                    callback(output)
-                    break
-                }
-                output.append(last)
+            // 1. Check Count
+            guard 0 != self.units.count else {
+                callback(nil)
+                return
             }
-           
+            // 2. Prepare Return Values
+            var output: Cocoa?
             
+             output = units.popLast()
+            print("Milk Consume")
             callback(output)
         }
     }

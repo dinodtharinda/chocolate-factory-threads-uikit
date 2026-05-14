@@ -28,7 +28,8 @@ class ChocoFactoryViewModel {
         chocoFactory
             .setCallbacks(
                 callbackConsumeMilk: milkConsume,
-                callbackConsumeSugar: sugarConsume
+                callbackConsumeSugar: sugarConsume,
+                callbackConsumeCocoa: cocoaConsume
             )
 
     }
@@ -67,6 +68,24 @@ class ChocoFactoryViewModel {
         return sugar
     }
     
+    
+    func cocoaConsume()-> Cocoa?{
+        
+        var sugar: Cocoa?
+        
+        queue.sync {
+            self.cocoaFactory.consume { output in
+                guard let s = output else {
+                    return
+                }
+                sugar = s
+            }
+        }
+        
+        return sugar
+    }
+    
+    
 
    
     func start(){
@@ -82,7 +101,7 @@ class ChocoFactoryViewModel {
             self.sugarFactory.start()
         }
        
-//        cocoaFactory.start()
+        cocoaFactory.start()
 //        giftFactory.produce(chocoStore: chocoFactory, milkStore: milkFactory)
     }
     

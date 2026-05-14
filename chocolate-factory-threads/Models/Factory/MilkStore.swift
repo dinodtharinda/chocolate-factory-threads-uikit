@@ -48,19 +48,15 @@ class MilkStore: Store {
                
                 
                     if(self.units.count < self.maxCapacity){
-                        if self.status != .producing {
-                            self.status = .producing
-                        }
                         
+                        toggleStatus(status: .producing)
                         
                         self.units.insert(Milk(), at: 0)
                         print("Milk Produced")
                         Thread.sleep(forTimeInterval: 0.3)
                     } else {
                         
-                        if self.status != .resourceFull {
-                            self.status = .resourceFull
-                        }
+                        toggleStatus(status: .resourceFull)
                     }
                     
                    
@@ -74,9 +70,16 @@ class MilkStore: Store {
         
     }
     
+    func toggleStatus(status: Status){
+        if self.status != status {
+            self.status = status
+        }
+    }
+    
     func pause(){
         unitQueue.async {
             self.isActive = false
+            self.toggleStatus(status: .stopped)
         }
         
        
@@ -86,6 +89,7 @@ class MilkStore: Store {
         unitQueue.sync{
             self.isActive = false
             self.units = []
+            self.toggleStatus(status: .stopped)
         }
     
     }
