@@ -25,7 +25,11 @@ class ChocoFactoryViewModel {
         self.chocoFactory = ChocoStore()
         self.giftFactory = GiftStore()
         self.queue = .init(label: "viewmodel.queue", attributes: .concurrent)
-        chocoFactory.setCallbacks(callbackConsumeMilk: milkConsume)
+        chocoFactory
+            .setCallbacks(
+                callbackConsumeMilk: milkConsume,
+                callbackConsumeSugar: sugarConsume
+            )
 
     }
     
@@ -39,13 +43,28 @@ class ChocoFactoryViewModel {
                 guard let m = output else {
                     return
                 }
-                
                 milk = m
             })
            
         }
         
         return milk
+    }
+    
+    func sugarConsume()-> Sugar?{
+        
+        var sugar: Sugar?
+        
+        queue.sync {
+            self.sugarFactory.consume { output in
+                guard let s = output else {
+                    return
+                }
+                sugar = s
+            }
+        }
+        
+        return sugar
     }
     
 
@@ -60,7 +79,7 @@ class ChocoFactoryViewModel {
             self.chocoFactory.startProduction()
         }
        
-//        sugarFactory.start()
+        sugarFactory.start() 
 //        cocoaFactory.start()
 //        giftFactory.produce(chocoStore: chocoFactory, milkStore: milkFactory)
     }
