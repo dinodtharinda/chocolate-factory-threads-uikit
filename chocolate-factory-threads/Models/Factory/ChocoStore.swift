@@ -34,7 +34,9 @@ class ChocoStore: Store {
 
     init() {
         self.status = .stopped
-        self.unitQueue = DispatchQueue.init(label: "com.dinod.unit.choco")
+        self.unitQueue = DispatchQueue.init(
+            label: "com.dinod.unit.choco"
+        )
         //self.syncQueue = DispatchQueue.init(label: "com.dinod.unit.sync")
     }
     func setAction(didChangeStatus: @escaping (Status) -> Void) {
@@ -61,7 +63,7 @@ class ChocoStore: Store {
                 if self.maxCapacity > self.units.count {
                     print("True Capacity Condition")
                     
-                    //consume milk
+//                    consume milk
                     if(requiredMilk > milkUnits.count){
                         let milk:Milk? = callbackConsumeMilk?()
                         if(milk != nil){
@@ -108,6 +110,12 @@ class ChocoStore: Store {
             Thread.sleep(forTimeInterval: 0.3)
         }
 
+    }
+    
+    func pause(){
+        unitQueue.sync {
+            self.isActive = false
+        }
     }
 
     func consume(count: Int, callback: @escaping ([Choco]?) -> Void) {

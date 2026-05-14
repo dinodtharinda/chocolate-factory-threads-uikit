@@ -78,23 +78,33 @@ class ChocoFactoryViewModel {
         queue.async{
             self.chocoFactory.startProduction()
         }
+        queue.async{
+            self.sugarFactory.start()
+        }
        
-        sugarFactory.start() 
 //        cocoaFactory.start()
 //        giftFactory.produce(chocoStore: chocoFactory, milkStore: milkFactory)
     }
     
     func pause(){
-        milkFactory.pause()
-        sugarFactory.pause()
-        cocoaFactory.pause()
+        print("Clicked Puase")
+        queue.async{
+            self.milkFactory.pause()
+            self.sugarFactory.pause()
+            self.cocoaFactory.pause()
+            self.chocoFactory.pause()
+        }
+        
     }
     
     
     func reset(){
-        milkFactory.reset()
-        sugarFactory.reset()
-        cocoaFactory.reset()
+        queue.async{
+            self.milkFactory.reset()
+            self.sugarFactory.reset()
+            self.cocoaFactory.reset()
+        }
+       
     }
     
     

@@ -75,16 +75,19 @@ class MilkStore: Store {
     }
     
     func pause(){
-        self.isActive = false
-    
+        unitQueue.async {
+            self.isActive = false
+        }
+        
+       
     }
     
     func reset(){
-        unitQueue.async {
+        unitQueue.sync{
             self.isActive = false
             self.units = []
         }
-       
+    
     }
     
     func consume( callback: @escaping (Milk?) -> Void){

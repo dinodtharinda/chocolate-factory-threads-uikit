@@ -68,13 +68,21 @@ class SugarStore: Store {
     }
 
     func pause() {
-        self.isActive = false
+        unitQueue.sync {
+            self.isActive = false
+        }
+        
+        
     }
 
     func reset() {
-        self.isActive = false
-        self.status = .stopped
-        self.units = []
+        unitQueue.sync {
+            self.isActive = false
+            self.status = .stopped
+            self.units = []
+        }
+        
+        
     }
 
     func consume( callback: @escaping (Sugar?) -> Void) {
